@@ -1,0 +1,153 @@
+<html>
+    <body>
+        <canvas id="board">  
+        </canvas>
+        <script>
+            const board = document.getElementById("board")
+            const boardSize = 300
+            const gridSize = 10
+            const totalCell = boardSize / gridSize
+            const boardCtx = init(board)
+            const defaultSnakeSize = 5
+            let gameRunner = null
+            let snakePosX = snakePosY = 10
+            let applePosX = applePosY = 5
+            let xSpeed = 1
+            let ySpeed = 0
+            let snakeBody = []
+            let snakeSize = defaultSnakeSize
+
+            function init(canvasDom) {
+                if (canvasDom.getContext) {
+                    const domCyx = canvasDom.getContext('2d')
+                    board.width = board.height = boardSize
+                    registerOnPressEvent()
+                    return domCyx
+                }
+            }
+
+            function runGame() {
+                if (typeof boardCtx !== 'undefined') {
+                    gameRunner = setInterval(game, 50)
+                } else {
+                    alert("Sorry your browser doesn't support canvas")
+                }
+            }
+
+            function registerOnPressEvent() {
+                document.addEventListener("keydown", function(e) {
+                    switch(e.keyCode) {
+                        case 37: // left arrow
+                            xSpeed = xSpeed === 1 ? 1 : -1
+                            ySpeed = 0
+                            break;
+                        case 38: // up arrow
+                            xSpeed = 0
+                            ySpeed = ySpeed === 1 ? 1 :  -1
+                            break;
+                        case 39: // right arrow
+                            xSpeed = xSpeed === -1 ? -1 : 1
+                            ySpeed = 0
+                            break;
+                        case 40: // down arrow
+                            xSpeed = 0
+                            ySpeed = ySpeed === -1 ? -1 : 1
+                            break;
+                    }
+                })
+            }
+
+            function game() {
+                snakePosX += xSpeed
+                snakePosY += ySpeed
+
+                if (snakePosX < 0) {
+                    snakePosX = totalCell - 1
+                }
+                if (snakePosX > totalCell - 1) {
+                    snakePosX = 0
+                }
+                if (snakePosY < 0) {
+                    snakePosY = totalCell - 1
+                }
+                if (snakePosY > totalCell - 1) {
+                    snakePosY = 0
+                }
+
+                renderBoard()
+                renderApple()
+                renderSnake()
+                renderScore()
+                if (gameRunner === null) {
+                    renderGameOver()
+                }
+            }
+
+            function renderScore() {
+                const score = snakeSize - defaultSnakeSize
+                boardCtx.font = "20px Georgia"
+                boardCtx.fillStyle = "red"
+                boardCtx.fillText("Score: " + score, gridSize, gridSize * 3)
+            }
+
+            function renderGameOver() {
+                boardCtx.font = "20px Georgia"
+                boardCtx.fillStyle = "red"
+                boardCtx.fillText("GAME OVER", gridSize * totalCell * 0.3, gridSize * totalCell * 0.5)
+            }
+
+            function renderSnake() {
+                boardCtx.fillStyle = "green"
+                for (let i = 0; i < snakeBody.length; i++) {
+                    boardCtx.fillRect(snakeBody[i].x * gridSize, snakeBody[i].y * gridSize, gridSize - 1, gridSize - 1)
+                    if (snakeBody[i].x === snakePosX && snakeBody[i].y === snakePosY) {
+                        stopGame()
+                    }
+                }
+
+                snakeBody.push({ x: snakePosX, y: snakePosY })
+
+                if (isSnakeEatApple()) {
+                    randomApple()
+                    snakeSize++
+                }
+
+                if (snakeBody.length > snakeSize) {
+                    snakeBody.shift()
+                }
+            }
+
+            function isSnakeEatApple() {
+                return snakePosX === applePosX && snakePosY === applePosY
+            }
+
+            function randomApple() {
+                applePosX = Math.floor(Math.random() * totalCell)
+                applePosY = Math.floor(Math.random() * totalCell)
+            }
+
+            function renderApple() {
+                boardCtx.fillStyle = "red"
+                return boardCtx.fillRect(applePosX * gridSize, applePosY * gridSize, gridSize - 1, gridSize - 1)
+            }
+
+            function renderBoard() {
+                boardCtx.fillStyle = "black"
+                boardCtx.fillRect(0, 0, board.width, board.height)
+            }
+
+            function stopGame() {
+                clearInterval(gameRunner)
+                gameRunner = null
+            }
+
+            function renderStartScene() {
+                renderBoard()
+            }
+
+            window.onload = function(e) {
+                runGame()
+            }
+        </script>
+    </body>
+</html>
