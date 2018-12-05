@@ -111,7 +111,7 @@
             function renderSnake() {
                 boardCtx.fillStyle = "green"
                 for (let i = 0; i < snakeBody.length; i++) {
-                    boardCtx.fillRect(snakeBody[i].x * GRID_SIZE, snakeBody[i].y * GRID_SIZE, GRID_SIZE - 1, GRID_SIZE - 1)
+                    boardCtx.fillRect(snakeBody[i].x * GRID_SIZE, snakeBody[i].y * GRID_SIZE, GRID_SIZE, GRID_SIZE)
                     if (snakeBody[i].x === snakePosX && snakeBody[i].y === snakePosY) {
                         stopGame()
                     }
