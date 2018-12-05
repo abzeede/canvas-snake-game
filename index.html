@@ -1,28 +1,40 @@
 <html>
+    <head>
+        <style>
+            .container {
+                text-align: center;
+            }
+        </style>
+    </head>
     <body>
-        <canvas id="board">  
-        </canvas>
+        <div class="container">
+            <h1>CANVAS SNAKE</h1>
+            <canvas id="board"></canvas>
+        </div>
         <script>
+            const BOARD_SIZE = 300
+            const GRID_SIZE = 10
+            const DEFAULT_SNAKE_SIZE = 5
+            const FORWARD = 1
+            const BACKWARD = 0
+            const TOTAL_AX_CELL = BOARD_SIZE / GRID_SIZE
             const board = document.getElementById("board")
-            const boardSize = 300
-            const gridSize = 10
-            const totalCell = boardSize / gridSize
             const boardCtx = init(board)
-            const defaultSnakeSize = 5
             let gameRunner = null
+            let score = 0
             let snakePosX = snakePosY = 10
             let applePosX = applePosY = 5
             let xSpeed = 1
             let ySpeed = 0
             let snakeBody = []
-            let snakeSize = defaultSnakeSize
+            let snakeSize = DEFAULT_SNAKE_SIZE
 
             function init(canvasDom) {
                 if (canvasDom.getContext) {
-                    const domCyx = canvasDom.getContext('2d')
-                    board.width = board.height = boardSize
+                    const cCtx = canvasDom.getContext('2d')
+                    board.width = board.height = BOARD_SIZE
                     registerOnPressEvent()
-                    return domCyx
+                    return cCtx
                 }
             }
 
@@ -38,41 +50,42 @@
                 document.addEventListener("keydown", function(e) {
                     switch(e.keyCode) {
                         case 37: // left arrow
-                            xSpeed = xSpeed === 1 ? 1 : -1
+                            xSpeed = xSpeed === FORWARD ? FORWARD : BACKWARD // prevent the snake turn back
                             ySpeed = 0
-                            break;
+                            break
                         case 38: // up arrow
                             xSpeed = 0
-                            ySpeed = ySpeed === 1 ? 1 :  -1
-                            break;
+                            ySpeed = ySpeed === FORWARD ? FORWARD : BACKWARD
+                            break
                         case 39: // right arrow
-                            xSpeed = xSpeed === -1 ? -1 : 1
+                            xSpeed = xSpeed === BACKWARD ? BACKWARD : FORWARD
                             ySpeed = 0
-                            break;
+                            break
                         case 40: // down arrow
                             xSpeed = 0
-                            ySpeed = ySpeed === -1 ? -1 : 1
-                            break;
+                            ySpeed = ySpeed === BACKWARD ? BACKWARD : FORWARD
+                            break
                     }
                 })
             }
 
             function game() {
+                // move the snake
                 snakePosX += xSpeed
                 snakePosY += ySpeed
 
+                // when the snake hit border then warp it to the other side
                 if (snakePosX < 0) {
-                    snakePosX = totalCell - 1
-                }
-                if (snakePosX > totalCell - 1) {
+                    snakePosX = TOTAL_AX_CELL - 1
+                } else if (snakePosX > TOTAL_AX_CELL - 1) {
                     snakePosX = 0
-                }
-                if (snakePosY < 0) {
-                    snakePosY = totalCell - 1
-                }
-                if (snakePosY > totalCell - 1) {
+                } else if (snakePosY < 0) {
+                    snakePosY = TOTAL_AX_CELL - 1
+                } else if (snakePosY > TOTAL_AX_CELL - 1) {
                     snakePosY = 0
                 }
+
+                boardCtx.clearRect(0, 0, board.width, board.height)
 
                 renderBoard()
                 renderApple()
@@ -84,22 +97,21 @@
             }
 
             function renderScore() {
-                const score = snakeSize - defaultSnakeSize
                 boardCtx.font = "20px Georgia"
                 boardCtx.fillStyle = "red"
-                boardCtx.fillText("Score: " + score, gridSize, gridSize * 3)
+                boardCtx.fillText("Score: " + score, GRID_SIZE, GRID_SIZE * 3)
             }
 
             function renderGameOver() {
                 boardCtx.font = "20px Georgia"
                 boardCtx.fillStyle = "red"
-                boardCtx.fillText("GAME OVER", gridSize * totalCell * 0.3, gridSize * totalCell * 0.5)
+                boardCtx.fillText("GAME OVER", GRID_SIZE * TOTAL_AX_CELL * 0.3, GRID_SIZE * TOTAL_AX_CELL * 0.5)
             }
 
             function renderSnake() {
                 boardCtx.fillStyle = "green"
                 for (let i = 0; i < snakeBody.length; i++) {
-                    boardCtx.fillRect(snakeBody[i].x * gridSize, snakeBody[i].y * gridSize, gridSize - 1, gridSize - 1)
+                    boardCtx.fillRect(snakeBody[i].x * GRID_SIZE, snakeBody[i].y * GRID_SIZE, GRID_SIZE - 1, GRID_SIZE - 1)
                     if (snakeBody[i].x === snakePosX && snakeBody[i].y === snakePosY) {
                         stopGame()
                     }
@@ -108,8 +120,9 @@
                 snakeBody.push({ x: snakePosX, y: snakePosY })
 
                 if (isSnakeEatApple()) {
-                    randomApple()
+                    score++
                     snakeSize++
+                    randomApple()
                 }
 
                 if (snakeBody.length > snakeSize) {
@@ -122,13 +135,13 @@
             }
 
             function randomApple() {
-                applePosX = Math.floor(Math.random() * totalCell)
-                applePosY = Math.floor(Math.random() * totalCell)
+                applePosX = Math.floor(Math.random() * TOTAL_AX_CELL)
+                applePosY = Math.floor(Math.random() * TOTAL_AX_CELL)
             }
 
             function renderApple() {
                 boardCtx.fillStyle = "red"
-                return boardCtx.fillRect(applePosX * gridSize, applePosY * gridSize, gridSize - 1, gridSize - 1)
+                return boardCtx.fillRect(applePosX * GRID_SIZE, applePosY * GRID_SIZE, GRID_SIZE - 1, GRID_SIZE - 1)
             }
 
             function renderBoard() {
@@ -138,6 +151,7 @@
 
             function stopGame() {
                 clearInterval(gameRunner)
+                score = 0
                 gameRunner = null
             }
 
